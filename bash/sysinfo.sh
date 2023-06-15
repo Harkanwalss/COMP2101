@@ -1,17 +1,33 @@
 #!/bin/bash
+#sysinfo script for lab 4
 
-# Display the fully-qualified domain name (FQDN)
-fqdn=$(hostname)
-echo "Fully-Qualified Domain Name (FQDN): $fqdn"
+myhostname=$(hostname)
+mydate=$(date)
 
-# Display the operating system name and version
-os_info=$(hostnamectl | grep "Operating System")
-echo "Operating System: $os_info"
+mycpu=$( lscpu|grep 'Model name:'|sed 's/.*Model name: *//')
+mycpucurrentspeed=$(sudo lshw -class processor| grep size|tail -1|awk '{print $2}' )
+mycpumaxspeed=$(sudo lshw -class processor| grep capacity|tail -1|awk '{print $2}' )
 
-# Display the IP addresses of the machine (excluding 127.0.0.1)
-ip_addresses=$(hostname -I | awk '{gsub(/^127\./, ""); print}')
-echo "IP Addresses: $ip_addresses"
+source /etc/os-release
 
-# Display the available space in the root filesystem
-space_info=$(df -h / | awk 'NR==2{print $4}')
-echo "Available Space in Root Filesystem: $space_info"
+myfqdn=$(hostname -f)
+if [[ ! $myfqdn =~ '.' ]]; then
+	myfqdn+=" (no domain name available)"
+fi
+
+cat <<EOF
+
+System info report produced by $USER on $mydate
+
+System Info
+-----------
+Hostname: $myfqdn
+OS:       $PRETTY_NAME
+
+Processor Info
+--------------
+CPU Model:     $mycpu
+Current Speed: $mycpucurrentspeed
+Max Speed:     $mycpumaxspeed
+
+EOF
